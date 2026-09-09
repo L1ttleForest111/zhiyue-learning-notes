@@ -45,8 +45,17 @@ body { margin: 0; min-width: 1080px; }
 .markdown-preview h3.ant-typography { margin-top: 12px; }
 .markdown-preview h4.ant-typography, .markdown-preview h5.ant-typography { margin-top: 12px; }
 .markdown-preview p { line-height: 1.8; }
-.markdown-preview li { line-height: 1.8; margin-left: 18px; }
+.markdown-preview ul, .markdown-preview ol { padding-left: 24px; }
+.markdown-preview li { line-height: 1.8; }
+.markdown-preview input[type='checkbox'] { margin-right: 7px; }
 .markdown-preview blockquote { border-left: 3px solid #9dba70; color: #687180; margin: 10px 0; padding-left: 12px; }
+.markdown-preview a { color: #3f671e; text-decoration: underline; }
+.markdown-preview table { border-collapse: collapse; display: block; margin: 14px 0; max-width: 100%; overflow-x: auto; width: max-content; }
+.markdown-preview th, .markdown-preview td { border: 1px solid #d9dfd1; padding: 8px 12px; text-align: left; }
+.markdown-preview th { background: #f3f7eb; font-weight: 600; }
+.markdown-preview pre { background: #f6f8fa; border-radius: 7px; margin: 12px 0; overflow: auto; padding: 14px; }
+.markdown-preview pre code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; line-height: 1.65; }
+.markdown-preview :not(pre) > code { background: #edf1e8; border-radius: 4px; padding: 2px 5px; }
 
 @media (max-width: 1180px) {
   body { min-width: 0; }

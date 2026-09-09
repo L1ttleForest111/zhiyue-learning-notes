@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   App as AntdApp,
   Button,
@@ -26,7 +26,6 @@ import {
   DashboardOutlined,
   DeleteOutlined,
   FileTextOutlined,
-  FolderAddOutlined,
   FolderOutlined,
   PlusOutlined,
   PushpinFilled,
@@ -36,6 +35,9 @@ import {
   StarOutlined,
   TagsOutlined,
 } from '@ant-design/icons';
+import ReactMarkdown from 'react-markdown';
+import rehypeHighlight from 'rehype-highlight';
+import remarkGfm from 'remark-gfm';
 import { api } from './api';
 import type { Category, Dashboard, Note, NotePayload, NoteStatus, Tag } from './types';
 
@@ -50,16 +52,10 @@ function toDateInput(value: string | null) {
   return value ? value.slice(0, 16).replace(' ', 'T') : '';
 }
 
-function markdownPreview(content: string) {
+function MarkdownPreview({ content }: { content: string }) {
   if (!content.trim()) return <Text type="secondary">在左侧写下你的学习收获…</Text>;
-  return content.split('\n').map((line, index) => {
-    if (line.startsWith('### ')) return <Title level={5} key={index}>{line.slice(4)}</Title>;
-    if (line.startsWith('## ')) return <Title level={4} key={index}>{line.slice(3)}</Title>;
-    if (line.startsWith('# ')) return <Title level={3} key={index}>{line.slice(2)}</Title>;
-    if (line.startsWith('- ')) return <li key={index}>{line.slice(2)}</li>;
-    if (line.startsWith('> ')) return <blockquote key={index}>{line.slice(2)}</blockquote>;
-    return line ? <Paragraph key={index}>{line}</Paragraph> : <br key={index} />;
-  });
+
+  return <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>{content}</ReactMarkdown>;
 }
 
 export default function App() {
@@ -253,7 +249,7 @@ function Editor({ draft, categories, tags, selected, saving, onChange, onSave, o
       <Row gutter={[12, 12]}><Col xs={24} md={8}><Select className="full-width" value={draft.categoryId ?? undefined} placeholder="选择分类" allowClear options={categories.map((category) => ({ value: category.id, label: category.name }))} onChange={(value) => onChange('categoryId', value ?? null)} /></Col><Col xs={24} md={8}><Select className="full-width" value={draft.status} options={Object.entries(STATUS_LABEL).map(([value, label]) => ({ value, label }))} onChange={(value) => onChange('status', value as NoteStatus)} /></Col><Col xs={24} md={8}><Input type="datetime-local" value={toDateInput(draft.nextReviewAt)} onChange={(event) => onChange('nextReviewAt', event.target.value || null)} /></Col></Row>
       <div><Text type="secondary"><TagsOutlined /> 标签</Text><div className="tag-selector">{tags.length ? tags.map((tag) => <AntTag.CheckableTag key={tag.id} checked={draft.tagIds.includes(tag.id)} onChange={() => toggleTag(tag.id)}>#{tag.name}</AntTag.CheckableTag>) : <Text type="secondary">先在左侧创建标签</Text>}</div></div>
       <Divider />
-      <Row gutter={[16, 16]}><Col xs={24} lg={12}><Text strong>Markdown</Text><TextArea className="markdown-input" value={draft.content} placeholder={'# 今天学到了什么？\n\n- 记录核心概念\n- 写下自己的理解\n- 补充一个小例子'} onChange={(event) => onChange('content', event.target.value)} /></Col><Col xs={24} lg={12}><Text strong>预览</Text><article className="markdown-preview">{markdownPreview(draft.content)}</article></Col></Row>
+      <Row gutter={[16, 16]}><Col xs={24} lg={12}><Text strong>Markdown</Text><TextArea className="markdown-input" value={draft.content} placeholder={'# 今天学到了什么？\n\n- 记录核心概念\n- 写下自己的理解\n- 补充一个小例子'} onChange={(event) => onChange('content', event.target.value)} /></Col><Col xs={24} lg={12}><Text strong>预览</Text><article className="markdown-preview"><MarkdownPreview content={draft.content} /></article></Col></Row>
     </Space>
   </Card>;
 }
