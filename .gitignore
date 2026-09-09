@@ -1,0 +1,20 @@
+# Frontend
+notes-web/node_modules/
+notes-web/dist/
+notes-web/*.tsbuildinfo
+notes-web/vite.config.js
+notes-web/vite.config.d.ts
+
+# Backend
+notes-api/target/
+
+# Local environment and logs
+.env
+.env.*
+!.env.example
+*.log
+
+# IDE and OS files
+.DS_Store
+.idea/
+.vscode/
