@@ -9,7 +9,7 @@
 | [前端](./frontend/README.md) | React、TypeScript、Ant Design、Markdown、CSS |
 | [后端](./backend/README.md) | Java、Spring Boot、接口设计、异常处理、MyBatis-Plus |
 | [数据库](./database/README.md) | MySQL、SQL、表结构、关联关系、索引 |
-| [项目](./project/README.md) | 项目结构、本地启动、架构和开发记录 |
+| [项目](./project/README.md) | 项目结构、本地启动、架构、质量检查和开发记录 |
 | [接口文档](./api.md) | 知页-学习笔记 REST API |
 
 ## 使用约定

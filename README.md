@@ -60,6 +60,16 @@ npm run dev
 
 浏览器打开 `http://localhost:5173`。
 
+## 质量检查
+
+每次完成一个功能或修复后，在仓库根目录运行：
+
+```bash
+bash scripts/quality-check.sh
+```
+
+该命令会执行前端类型检查与生产构建、生产依赖漏洞检查，以及后端测试与打包验证。完整审查规则见 [全栈质量检查工作流](./docs/project/quality-workflow.md)。
+
 ## 学习路径
 
 1. 阅读 `entity`、`mapper`、`service`、`controller` 四层代码，理解 Spring Boot 分层。

@@ -5,12 +5,29 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api
 type ApiResponse<T> = { code: number; message: string; data: T };
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${BASE_URL}${path}`, {
-    ...init,
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
-  });
-  const body = await response.json() as ApiResponse<T>;
-  if (!response.ok || body.code !== 0) throw new Error(body.message || '请求失败');
+  const headers = new Headers(init?.headers);
+  if (init?.body && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(`${BASE_URL}${path}`, { ...init, headers });
+  } catch {
+    throw new Error('网络连接失败，请确认后端服务是否已启动');
+  }
+
+  const text = await response.text();
+  let body: ApiResponse<T> | undefined;
+  try {
+    body = text ? JSON.parse(text) as ApiResponse<T> : undefined;
+  } catch {
+    throw new Error(response.ok ? '服务返回了无法解析的响应' : `请求失败（HTTP ${response.status}）`);
+  }
+
+  if (!response.ok || !body || body.code !== 0) {
+    throw new Error(body?.message || `请求失败（HTTP ${response.status}）`);
+  }
   return body.data;
 }
 

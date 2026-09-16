@@ -158,7 +158,7 @@ public class NoteService {
 
     private Note requireNote(Long id) {
         Note note = noteMapper.selectById(id);
-        if (note == null) throw new BusinessException("笔记不存在");
+        if (note == null) throw BusinessException.notFound("笔记不存在");
         return note;
     }
 
