@@ -14,5 +14,6 @@ docs/       # 可随 Git 提交的开发与学习文档
 
 - [本地启动说明](../../README.md#本地启动)
 - [全栈质量检查工作流](./quality-workflow.md)
+- [`quality-check.sh` 逐行解读](./quality-check-script-explained.md)
 - [接口文档](../api.md)
 - [开发文档总导航](../README.md)
