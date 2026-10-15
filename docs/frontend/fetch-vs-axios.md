@@ -1,5 +1,7 @@
 # Fetch 与 Axios：前端调用接口的选择
 
+本文聚焦普通 HTTP/JSON 请求的工程化选择；流式响应与 SSE 的区别见 [Fetch、Axios 与 EventSource](./fetch-axios-eventsource.md)。
+
 ## 结论先行
 
 - 新项目、依赖简单、请求逻辑不复杂：优先使用浏览器原生 `fetch`，再按项目需要封装一层请求函数。

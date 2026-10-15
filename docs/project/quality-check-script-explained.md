@@ -24,13 +24,7 @@ scripts/quality-check.sh
 
 ## 2. 如何运行
 
-先进入项目根目录：
-
-```bash
-cd /Users/yinhao/CodeBuddy/20260908162653
-```
-
-执行：
+先在终端进入项目根目录，然后执行：
 
 ```bash
 bash scripts/quality-check.sh
@@ -520,10 +514,9 @@ printf '\n==> 全栈质量检查通过\n'
 准备 Git push 前
 ```
 
-执行命令：
+在项目根目录执行：
 
 ```bash
-cd /Users/yinhao/CodeBuddy/20260908162653
 bash scripts/quality-check.sh
 ```
 

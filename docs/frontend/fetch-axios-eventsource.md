@@ -1,4 +1,6 @@
-# fetch、axios、EventSource 是什么，有什么差别
+# Fetch、Axios 与 EventSource：普通请求和 SSE 的区别
+
+本文重点解释普通请求和流式响应的差别；Fetch 与 Axios 的工程化选择见 [Fetch 与 Axios：前端调用接口的选择](./fetch-vs-axios.md)。
 
 这三样都是浏览器里「跟服务器说话」的方式，差别在：**要不要等整包结果**，以及 **谁帮你把脏活干了**。
 

@@ -8,8 +8,9 @@
 .
 ├── notes-web/       # React + TypeScript + Vite
 ├── notes-api/       # Java 17 + Spring Boot + MyBatis-Plus
-├── docs/api.md      # 本地 Markdown 接口文档
-└── notes-api/src/main/resources/db/init.sql
+├── docs/            # 长期学习笔记、计划、案例和项目文档
+├── scripts/         # 本地质量检查脚本
+└── .codebuddy/      # 随项目维护的 CodeBuddy Skills
 ```
 
 ## 环境要求
@@ -59,6 +60,14 @@ npm run dev
 ```
 
 浏览器打开 `http://localhost:5173`。
+
+## 文档导航
+
+- [开发文档总导航](./docs/README.md)
+- [小米高级前端：云 Mall 对齐计划](./docs/plans/xiaomi-senior-frontend-plan.md)
+- [`agentic-mall` 项目实践案例](./docs/cases/agentic-mall/README.md)
+- [跨项目学习笔记归档工作流](./docs/project/learning-note-archive-workflow.md)
+- [REST API 文档](./docs/api.md)
 
 ## 质量检查
 

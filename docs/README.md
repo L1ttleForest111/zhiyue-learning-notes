@@ -6,15 +6,20 @@
 
 | 分类 | 内容 |
 | --- | --- |
-| [前端](./frontend/README.md) | React、TypeScript、Ant Design、Markdown、CSS |
-| [后端](./backend/README.md) | Java、Spring Boot、接口设计、异常处理、MyBatis-Plus |
-| [数据库](./database/README.md) | MySQL、SQL、表结构、关联关系、索引 |
-| [项目](./project/README.md) | 项目结构、本地启动、架构、质量检查和开发记录 |
+| [学习计划](./plans/README.md) | 阶段目标、任务编号、完成标准和产出链接 |
+| [前端](./frontend/README.md) | React、TypeScript、网络、工程化和浏览器知识 |
+| [后端](./backend/README.md) | Java、Spring Boot、接口设计、服务发现和基础设施 |
+| [数据库](./database/README.md) | MySQL、SQL、表结构、关联关系和索引 |
+| [项目案例](./cases/README.md) | 来自 `agentic-mall` 等真实项目的实践和验证结果 |
+| [项目文档](./project/README.md) | 当前笔记项目的结构、流程、质量检查和开发决策 |
+| [文档模板](./templates/README.md) | 主题笔记和项目案例的统一结构 |
 | [接口文档](./api.md) | 知页-学习笔记 REST API |
 
 ## 使用约定
 
-1. 一篇主题笔记使用一个独立的 `.md` 文件。
-2. 文件名使用小写英文和连字符，例如 `markdown-preview.md`。
-3. 每篇笔记说明“是什么、为什么、如何实现、注意事项”。
-4. 新增笔记后，在对应目录的 `README.md` 中添加链接。
+1. 一篇主题笔记使用一个独立的 `.md` 文件，文件名使用小写英文和连字符。
+2. 新增前先搜索已有标题和核心术语；同主题优先合并，不创建 `-2`、`-new`、`-final` 文件。
+3. 通用概念归入前端、后端或数据库；阶段任务归入计划；真实改动和验证归入案例。
+4. 跨项目内容记录来源项目、仓库相对路径和可确认的 commit，不写本机绝对路径。
+5. 新增或移动文档后，更新对应目录的 `README.md`。
+6. 归档步骤和完成标准见[跨项目学习笔记归档工作流](./project/learning-note-archive-workflow.md)。
