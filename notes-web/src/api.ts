@@ -1,46 +1,64 @@
+import axios from 'axios';
+import type { AxiosRequestConfig } from 'axios';
 import type { Category, Dashboard, Note, NotePayload, PageResult, Tag } from './types';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api';
+const http = axios.create({
+  baseURL: BASE_URL,
+  timeout: 10_000,
+  headers: { Accept: 'application/json' },
+});
 
 type ApiResponse<T> = { code: number; message: string; data: T };
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const headers = new Headers(init?.headers);
-  if (init?.body && !headers.has('Content-Type')) {
-    headers.set('Content-Type', 'application/json');
-  }
+function isApiResponse(value: unknown): value is ApiResponse<unknown> {
+  return typeof value === 'object' && value !== null
+    && 'code' in value && typeof value.code === 'number'
+    && 'message' in value && typeof value.message === 'string'
+    && 'data' in value;
+}
 
-  let response: Response;
+async function request<T>(path: string, config?: AxiosRequestConfig): Promise<T> {
   try {
-    response = await fetch(`${BASE_URL}${path}`, { ...init, headers });
-  } catch {
-    throw new Error('网络连接失败，请确认后端服务是否已启动');
+    const response = await http.request<unknown>({ ...config, url: path });
+    const body = response.data;
+    if (!isApiResponse(body)) {
+      throw new Error('服务返回了无法解析的响应');
+    }
+    if (body.code !== 0) {
+      throw new Error(body.message || '请求处理失败');
+    }
+    return body.data as T;
+  } catch (error) {
+    if (axios.isCancel(error)) {
+      throw new Error('请求已取消');
+    }
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        const body: unknown = error.response.data;
+        throw new Error(isApiResponse(body) && body.message
+          ? body.message
+          : `请求失败（HTTP ${error.response.status}）`);
+      }
+      if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+        throw new Error('请求超时，请刷新确认操作结果');
+      }
+      throw new Error('网络连接失败，请确认后端服务是否已启动');
+    }
+    throw error;
   }
-
-  const text = await response.text();
-  let body: ApiResponse<T> | undefined;
-  try {
-    body = text ? JSON.parse(text) as ApiResponse<T> : undefined;
-  } catch {
-    throw new Error(response.ok ? '服务返回了无法解析的响应' : `请求失败（HTTP ${response.status}）`);
-  }
-
-  if (!response.ok || !body || body.code !== 0) {
-    throw new Error(body?.message || `请求失败（HTTP ${response.status}）`);
-  }
-  return body.data;
 }
 
 export const api = {
-  listNotes: (params: URLSearchParams) => request<PageResult<Note>>(`/notes?${params}`),
+  listNotes: (params: URLSearchParams) => request<PageResult<Note>>('/notes', { params }),
   getNote: (id: number) => request<Note>(`/notes/${id}`),
-  createNote: (payload: NotePayload) => request<Note>('/notes', { method: 'POST', body: JSON.stringify(payload) }),
-  updateNote: (id: number, payload: NotePayload) => request<Note>(`/notes/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
+  createNote: (payload: NotePayload) => request<Note>('/notes', { method: 'POST', data: payload }),
+  updateNote: (id: number, payload: NotePayload) => request<Note>(`/notes/${id}`, { method: 'PUT', data: payload }),
   deleteNote: (id: number) => request<void>(`/notes/${id}`, { method: 'DELETE' }),
-  patchNote: (id: number, action: 'pin' | 'favorite', value: boolean) => request<Note>(`/notes/${id}/${action}`, { method: 'PATCH', body: JSON.stringify({ value }) }),
+  patchNote: (id: number, action: 'pin' | 'favorite', value: boolean) => request<Note>(`/notes/${id}/${action}`, { method: 'PATCH', data: { value } }),
   listCategories: () => request<Category[]>('/categories'),
-  createCategory: (name: string) => request<Category>('/categories', { method: 'POST', body: JSON.stringify({ name }) }),
+  createCategory: (name: string) => request<Category>('/categories', { method: 'POST', data: { name } }),
   listTags: () => request<Tag[]>('/tags'),
-  createTag: (name: string) => request<Tag>('/tags', { method: 'POST', body: JSON.stringify({ name }) }),
+  createTag: (name: string) => request<Tag>('/tags', { method: 'POST', data: { name } }),
   dashboard: () => request<Dashboard>('/dashboard'),
 };
