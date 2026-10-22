@@ -23,3 +23,20 @@
 4. 跨项目内容记录来源项目、仓库相对路径和可确认的 commit，不写本机绝对路径。
 5. 新增或移动文档后，更新对应目录的 `README.md`。
 6. 归档步骤和完成标准见[跨项目学习笔记归档工作流](./project/learning-note-archive-workflow.md)。
+7. 需要在网页阅读时，明确调用 `move-learning-notes` 的本地数据库发布模式；仅归档不会写库，详见 [Skill 入库流程](./project/markdown-to-database-workflow.md)。
+
+## 网页笔记分类
+
+以下映射作为 Skill 入库指引。AI 先阅读正文和各目录的 `README.md` 确认归类，再通过后端 API 按分类名称查编号，不能假定分类 ID 固定。
+
+| 归档目录 | 网页分类 | 默认处理 |
+| --- | --- | --- |
+| `docs/frontend/` | 前端 | 用户调用入库后发布正式主题文档 |
+| `docs/backend/` | 后端 | 用户调用入库后发布正式主题文档 |
+| `docs/database/` | 数据库 | 用户调用入库后发布正式主题文档 |
+| `docs/cases/<project>/` | 项目案例 | 保留来源项目，发布案例 |
+| `docs/project/` | 项目文档 | 只发布用户选定的当前项目文档 |
+| `docs/plans/` | 学习计划 | 只发布用户选定的计划 |
+| `docs/templates/`、各级 `README.md`、`docs/api.md` | 不适用 | 默认跳过 |
+
+导入是单向发布：保留 Markdown 原件，不自动覆盖网页修改。重复文件先核查来源记录，禁止按标题猜测匹配。

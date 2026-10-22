@@ -13,6 +13,8 @@ notes-api/target/
 .env.*
 !.env.example
 *.log
+.local/
+.codebuddy/skills/move-learning-notes/references/local-config.md
 
 # IDE and OS files
 .DS_Store
