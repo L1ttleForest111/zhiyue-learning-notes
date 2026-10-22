@@ -6,6 +6,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 printf '\n==> 前端：类型检查与生产构建\n'
 (
   cd "$ROOT_DIR/notes-web"
+  npm test
   npm run build
 )
 

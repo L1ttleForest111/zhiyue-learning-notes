@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { AxiosRequestConfig } from 'axios';
-import type { Category, Dashboard, Note, NotePayload, PageResult, Tag } from './types';
+import type { Category, Dashboard, Note, NotePayload, PageResult, Tag, TravelNote, TravelNoteSummary, TravelNotePayload, TravelCapabilities } from './types';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api';
 const http = axios.create({
@@ -61,4 +61,13 @@ export const api = {
   listTags: () => request<Tag[]>('/tags'),
   createTag: (name: string) => request<Tag>('/tags', { method: 'POST', data: { name } }),
   dashboard: () => request<Dashboard>('/dashboard'),
+  listTravelNotes: (params: URLSearchParams) => request<PageResult<TravelNoteSummary>>('/travel-notes', { params }),
+  getTravelNote: (id: number) => request<TravelNote>(`/travel-notes/${id}`),
+  createTravelNote: (payload: TravelNotePayload) => request<TravelNote>('/travel-notes', { method: 'POST', data: payload }),
+  updateTravelNote: (id: number, payload: TravelNotePayload) => request<TravelNote>(`/travel-notes/${id}`, { method: 'PUT', data: payload }),
+  deleteTravelNote: (id: number) => request<void>(`/travel-notes/${id}`, { method: 'DELETE' }),
+  travelCapabilities: () => request<TravelCapabilities>('/travel-notes/capabilities'),
+  getTravelMapPreview: (id: number, signal?: AbortSignal) => request<{ previewUrl: string; mapConfigured: boolean }>(`/travel-notes/${id}/map-preview`, { signal }),
+  getTravelPreview: (id: number, signal?: AbortSignal) => request<{ htmlContent: string }>(`/travel-notes/${id}/preview-document`, { signal }),
+  travelPreviewUrl: (id: number) => `${BASE_URL}/travel-notes/${id}/preview`,
 };

@@ -126,6 +126,36 @@ describe('Axios API 请求兼容性', { concurrency: false }, () => {
     }
   });
 
+  it('旅行接口使用独立路径且 HTML 不经二次转义', async () => {
+    const payload = { title: '阳朔', destination: '阳朔', startDate: null, endDate: null, summary: '', journalContent: '# 心得', htmlContent: '<html><script>const x = "三日";</script></html>', originalFilename: '攻略.html', importKey: '12345678-1234-1234-1234-123456789012' };
+    await api.createTravelNote(payload);
+    assert.equal(lastConfig.url, '/travel-notes');
+    assert.equal(lastConfig.method, 'post');
+    assert.deepEqual(JSON.parse(lastConfig.data), payload);
+    await api.updateTravelNote(1, payload);
+    assert.equal(lastConfig.method, 'put');
+    await api.getTravelNote(1);
+    assert.equal(lastConfig.url, '/travel-notes/1');
+    await api.deleteTravelNote(1);
+    assert.equal(lastConfig.method, 'delete');
+    await api.listTravelNotes(new URLSearchParams({ page: '2' }));
+    assert.equal(lastConfig.url, '/travel-notes');
+    await api.travelCapabilities();
+    assert.equal(lastConfig.url, '/travel-notes/capabilities');
+    assert.match(api.travelPreviewUrl(1), /\/travel-notes\/1\/preview$/);
+    const controller = new AbortController();
+    handler = config => response(config, { code: 0, message: 'success', data: { htmlContent: '<h1>阳朔</h1>' } });
+    assert.deepEqual(await api.getTravelPreview(1, controller.signal), { htmlContent: '<h1>阳朔</h1>' });
+    assert.equal(lastConfig.url, '/travel-notes/1/preview-document');
+    assert.equal(lastConfig.method, 'get');
+    assert.equal(lastConfig.signal, controller.signal);
+    handler = config => response(config, { code: 0, message: 'success', data: { previewUrl: 'http://127.0.0.1:8082/preview/12345678-1234-1234-1234-123456789012', mapConfigured: false } });
+    const mapPreview = await api.getTravelMapPreview(1, controller.signal);
+    assert.match(mapPreview.previewUrl, /^http:\/\/127\.0\.0\.1:8082\/preview\//);
+    assert.equal(lastConfig.url, '/travel-notes/1/map-preview');
+    assert.equal(lastConfig.signal, controller.signal);
+  });
+
   it('取消请求单独提示，不误报网络失败', async () => {
     handler = () => { throw new axios.CanceledError(); };
     await assert.rejects(api.getNote(1), /请求已取消/);

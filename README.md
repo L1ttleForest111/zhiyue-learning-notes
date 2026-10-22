@@ -61,6 +61,24 @@ npm run dev
 
 浏览器打开 `http://localhost:5173`。
 
+## 旅行笔记
+
+左侧“旅行笔记”入口支持选择 UTF-8 的 `.html/.htm` 攻略（最多 2 MiB），填写目的地、日期、摘要与 Markdown 心得后保存到独立 `travel_notes` 表，不计入学习统计。列表支持分页和搜索；已保存攻略可隔离预览或下载原文件。
+
+已有数据库首次启用旅行功能，在项目根目录执行只新增旅行表的迁移（有密码时加 `-p`）：
+
+```bash
+mysql -u root < notes-api/src/main/resources/db/migrations/001_create_travel_notes.sql
+```
+
+HTML 原文存入 MySQL；地图攻略使用独立本机预览源 `http://127.0.0.1:8082`，端口由 `TRAVEL_PREVIEW_PORT` 配置，随 Spring Boot 启停。主页面向 API 获取有效十分钟的随机预览地址，再以 iframe 打开。该端口只提供受控 HTML，不提供数据库接口、CORS 或写入操作。iframe 的 `allow-same-origin` 只保留预览自身来源以便地图 SDK 使用存储，预览和知页主页面仍是不同来源；不得把预览接口反向代理到主页面同源。资源 CSP 白名单、禁止主页面导航/表单/嵌套 iframe 的 sandbox 与浏览器权限限制保持生效。腾讯 GL SDK 的样式计算使用动态 JavaScript、鉴权使用 JSONP，因此只有独立地图源允许 `unsafe-eval` 和腾讯地图子域脚本，主页面及兼容文字预览不会增加这些权限。此兼容策略只适合可信攻略，不是通用恶意 HTML 执行平台。加载失败提示可重试。
+
+WorkBuddy 的 `_TMapSecurityConfig` 本机代理被移除，原文件 Key 不继承，地图脚本标准化为官方 GL SDK。未配置 Key 时不再主动禁用 SDK，可以尝试加载底图和固定点位；实测存在鉴权报错，因此初始化或加载瓦片不代表正式授权、配额及道路路线可用。正式使用请在启动后端前通过环境变量 `TENCENT_MAP_KEY` 配置自己的 Web Key。浏览器 Key 可见，应限制授权域和配额。外部链接、相对 PDF、表单和嵌入页面默认移除；只允许已确认的腾讯地图公共资源，不提供 WorkBuddy 内网代理，不自动抓取分享 URL。请只导入可信攻略，不把旅行隐私数据提交 Git。
+
+兼容的 `/preview-document` 和 `/preview` 仍保留不透明来源沙箱方案，用于文字预览，但地图 SDK 在该模式可能因无法访问浏览器存储而失败。独立预览端口被占用时会导致启动失败，请修改 `TRAVEL_PREVIEW_PORT` 而不是关闭安全隔离。
+
+原始 HTML 下载后在浏览器独立打开会执行原脚本，下载只适用于可信文件。PDF、相对图片等附件不会自动随 HTML 导入。
+
 ## 文档导航
 
 - [开发文档总导航](./docs/README.md)
@@ -77,7 +95,7 @@ npm run dev
 bash scripts/quality-check.sh
 ```
 
-该命令会执行前端类型检查与生产构建、生产依赖漏洞检查，以及后端测试与打包验证。完整审查规则见 [全栈质量检查工作流](./docs/project/quality-workflow.md)。
+该命令会执行前端请求回归测试、类型检查与生产构建、生产依赖漏洞检查，以及后端测试与打包验证。完整审查规则见 [全栈质量检查工作流](./docs/project/quality-workflow.md)。
 
 ## 学习路径
 

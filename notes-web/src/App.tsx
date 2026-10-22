@@ -24,6 +24,7 @@ import {
 import {
   BookOutlined,
   DashboardOutlined,
+  CompassOutlined,
   DeleteOutlined,
   FileTextOutlined,
   FolderOutlined,
@@ -39,6 +40,7 @@ import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import remarkGfm from 'remark-gfm';
 import { api } from './api';
+import TravelNotes from './TravelNotes';
 import type { Category, Dashboard, Note, NotePayload, NoteStatus, Tag } from './types';
 
 const { Sider, Content } = Layout;
@@ -72,7 +74,7 @@ function NotesWorkspace() {
   const [draft, setDraft] = useState<NotePayload>(EMPTY_DRAFT);
   const [keyword, setKeyword] = useState('');
   const [categoryId, setCategoryId] = useState<number | null>(null);
-  const [view, setView] = useState<'notes' | 'dashboard'>('notes');
+  const [view, setView] = useState<'notes' | 'dashboard' | 'travel'>('notes');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -179,13 +181,14 @@ function NotesWorkspace() {
   const updateDraft = <K extends keyof NotePayload>(key: K, value: NotePayload[K]) => setDraft((current) => ({ ...current, [key]: value }));
   const menuItems = [
     { key: 'dashboard', icon: <DashboardOutlined />, label: '学习概览' },
-    { key: 'notes', icon: <BookOutlined />, label: '全部笔记' },
+    { key: 'notes', icon: <BookOutlined />, label: '学习笔记' },
+    { key: 'travel', icon: <CompassOutlined />, label: '旅行笔记' },
   ];
 
   return <Layout className="app-layout">
     <Sider width={244} theme="dark" className="app-sider">
       <div className="brand"><BookOutlined /><span>知页</span></div>
-      <Menu theme="dark" mode="inline" selectedKeys={[view]} items={menuItems} onClick={({ key }) => setView(key as 'notes' | 'dashboard')} />
+      <Menu theme="dark" mode="inline" selectedKeys={[view]} items={menuItems} onClick={({ key }) => setView(key as 'notes' | 'dashboard' | 'travel')} />
       <section className="sider-section"><div className="sider-title"><span>分类</span><Button type="text" size="small" icon={<PlusOutlined />} onClick={() => void addCatalog('category')} /></div>
         <Menu theme="dark" mode="inline" selectable selectedKeys={[categoryId === null ? 'all' : String(categoryId)]} items={[{ key: 'all', icon: <FolderOutlined />, label: '全部内容' }, ...categories.map((category) => ({ key: String(category.id), icon: <FolderOutlined />, label: category.name }))]} onClick={({ key }) => { setCategoryId(key === 'all' ? null : Number(key)); setView('notes'); }} />
       </section>
@@ -197,7 +200,7 @@ function NotesWorkspace() {
 
     <Layout>
       <Content className="page-content">
-        {view === 'dashboard'
+        {view === 'travel' ? <TravelNotes /> : view === 'dashboard'
           ? <DashboardPanel dashboard={dashboard} loading={loading} onOpen={selectNote} onCreate={createNote} />
           : <NotesPanel notes={notes} categories={categories} tags={tags} selected={selected} draft={draft} keyword={keyword} loading={loading} saving={saving} onKeyword={setKeyword} onSearch={() => void loadAll()} onSelect={selectNote} onCreate={createNote} onChange={updateDraft} onSave={() => void save()} onDelete={() => void remove()} onToggle={toggle} />}
       </Content>

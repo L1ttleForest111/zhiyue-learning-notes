@@ -14,6 +14,10 @@ spring:
     time-zone: Asia/Shanghai
     date-format: yyyy-MM-dd HH:mm:ss
 
+travel:
+  tencent-map-key: ${TENCENT_MAP_KEY:}
+  preview-port: ${TRAVEL_PREVIEW_PORT:8082}
+
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true

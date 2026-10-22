@@ -57,6 +57,14 @@ body { margin: 0; min-width: 1080px; }
 .markdown-preview pre code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; line-height: 1.65; }
 .markdown-preview :not(pre) > code { background: #edf1e8; border-radius: 4px; padding: 2px 5px; }
 
+.travel-alert { margin-bottom: 16px; }
+.travel-workspace { display: grid; grid-template-columns: 310px minmax(0, 1fr); gap: 20px; align-items: start; }
+.travel-cards { display: grid; gap: 12px; margin: 16px 0; min-height: 120px; }
+.travel-cards .ant-typography { margin-bottom: 8px; }
+.travel-selected { border-color: #536d2d; background: #f3f7eb; }
+.travel-preview { display: block; width: 100%; height: 75vh; border: 0; background: #fff; }
+@media (max-width: 1000px) { .travel-workspace { grid-template-columns: 1fr; } }
+
 @media (max-width: 1180px) {
   body { min-width: 0; }
   .notes-workspace { grid-template-columns: 280px minmax(500px, 1fr); }
