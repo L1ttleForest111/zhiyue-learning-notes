@@ -1245,3 +1245,5 @@ Request Accept
 Response Content-Type
 = 服务器实际返回的正文格式。
 ```
+
+`Origin` 和 `Access-Control-Allow-Origin` 这一对怎么比对、什么时候 JS 读不到响应，见 [XHR、同源与跨域（CORS）](./xhr-cors.md)。

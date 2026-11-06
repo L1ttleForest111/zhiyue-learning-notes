@@ -1,6 +1,6 @@
 # Fetch 与 Axios：前端调用接口的选择
 
-本文聚焦普通 HTTP/JSON 请求的工程化选择；流式响应与 SSE 的区别见 [Fetch、Axios 与 EventSource](./fetch-axios-eventsource.md)。
+本文聚焦普通 HTTP/JSON 请求的工程化选择；流式响应与 SSE 的区别见 [Fetch、Axios 与 EventSource](./fetch-axios-eventsource.md)。XHR、同源、CORS、以及为什么 H5 不能用 `downloadFile` 去拉 COS 上的 PDF，见 [XHR、同源与跨域（CORS）](./xhr-cors.md)。
 
 ## 结论先行
 
