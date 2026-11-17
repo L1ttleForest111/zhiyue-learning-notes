@@ -11,7 +11,7 @@ plan_tasks: []
 status: reviewed
 tags: [weapp, h5, geolocation, gcj02, tencent-map]
 created_at: 2026-11-06
-updated_at: 2026-11-06
+updated_at: 2026-11-16
 ---
 
 # 小程序和 H5 怎么拿定位
@@ -28,13 +28,21 @@ updated_at: 2026-11-06
 | 授权弹窗 | 微信位置权限；2023 年后还要先过隐私协议 | 浏览器「允许获取位置」 |
 | 安全限制 | 要在小程序后台配位置权限 | 必须是 https 或 localhost |
 
-Taro 的 `Taro.getLocation` 只是包了一层：小程序里等于 `wx.getLocation`；H5 里只有页面注入了微信 JS-SDK 的 `wx.getLocation` 才可用，**普通浏览器会直接失败**。跨端项目不要默认「调 Taro 两端都能拿到点」。
+Taro 的 `Taro.getLocation` 只是包了一层，自己不换坐标系。
+
+- 小程序：等于 `wx.getLocation`。`wgs84`、`gcj02` 都由微信返回。国内门店用 `gcj02`。
+- H5：先看当前页有没有 `window.wx.getLocation`。有就交给微信 JS-SDK；没有就走 Taro 自带的浏览器实现。
+- 浏览器实现只接受 `type: 'wgs84'`，内部调用 `navigator.geolocation.getCurrentPosition`，原样返回 WGS84。
+- H5 传 `gcj02` 会立刻失败，错误是 `getLocation:fail This coordinate system type is not temporarily supported`，不会去问浏览器。
+
+所以 H5 可以继续用 `Taro.getLocation`，只要 `type` 传 `wgs84`，拿到点后再自己转成 gcj02。不要再手写一套 `navigator.geolocation`。
 
 官方文档：
 
 - 小程序：[wx.getLocation](https://developers.weixin.qq.com/miniprogram/dev/api/location/wx.getLocation.html)
 - 小程序权限：[地理位置](https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/authorize.html)
 - 浏览器：[Geolocation](https://developer.mozilla.org/zh-CN/docs/Web/API/Geolocation_API)
+- 安全源 / HTTPS 面试口径：[HTTP / HTTPS 面试考点](./http-https-interview.md)
 - 微信网页：[JS-SDK getLocation](https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html#64)
 
 ---
@@ -57,7 +65,7 @@ Taro 的 `Taro.getLocation` 只是包了一层：小程序里等于 `wx.getLocat
 
 | 要做什么 | 用哪套 |
 |---|---|
-| 拿「我在哪」 | 小程序 `wx.getLocation`；普通 H5 `navigator.geolocation` |
+| 拿「我在哪」 | 小程序 `Taro.getLocation({ type: 'gcj02' })`；普通 H5 `Taro.getLocation({ type: 'wgs84' })` 后再转 gcj02 |
 | 打开地图看店 / 导航 | 小程序 `wx.openLocation`；H5 腾讯 **地点标注** URI（不要路线规划） |
 
 不要做成同一个函数硬撑两端。
@@ -65,7 +73,7 @@ Taro 的 `Taro.getLocation` 只是包了一层：小程序里等于 `wx.getLocat
 ### 落地顺序（按目标仓库改，不要照抄路径）
 
 1. 用编译期常量拆小程序 / H5（Taro 用 `TARO_ENV`，别的栈用自己的）。小程序分支保持原来的 `getLocation({ type: 'gcj02' })`，不要改行为。
-2. H5 不要调用会找 `window.wx.getLocation` 的封装（含 Taro H5 默认 `getLocation`）。先看当前页有没有这个函数；没有或调用失败，走浏览器定位。
+2. H5 调 `Taro.getLocation({ type: 'wgs84' })`。没有 `window.wx.getLocation` 时，Taro 自己调用浏览器定位。不要传 `gcj02`。
 3. 浏览器点是 WGS84，给国内门店 / 国内地图前转 gcj02。小程序已经要了 gcj02，不要再转。
 4. 每次进入强依赖位置的页面再问一次。内存点可以写进请求头，**不要**用来短路下一次定位。
 5. 失败文案按端写：小程序去设置里开位置；H5 允许浏览器获取位置。
@@ -130,9 +138,37 @@ wx.getLocation({
 
 ---
 
-## 2. H5：浏览器给点
+## 2. H5：Taro 用 `wgs84` 问浏览器
 
-普通网页没有 `wx.getLocation`。正确路径是浏览器定位：
+普通网页没有 `wx.getLocation`。当前 `@tarojs/taro-h5` 的 `getLocation.js` 规定：
+
+```text
+Taro.getLocation({ type })
+        ↓
+有 window.wx.getLocation → 交给微信 JS-SDK，成功或失败都由微信回调
+没有 → 进入 getLocationByW3CApi
+        ↓
+type 不是 wgs84 → 立刻 fail，不调用 geolocation
+浏览器没有 navigator.geolocation → fail
+        ↓
+navigator.geolocation.getCurrentPosition
+        ↓
+成功：原样返回 latitude / longitude（WGS84）
+失败：用户拒绝、超时、非安全源，走 fail
+```
+
+业务侧这样写：
+
+```js
+const loc = await Taro.getLocation({
+  type: 'wgs84',
+  isHighAccuracy: true,
+  highAccuracyExpireTime: 10000,
+})
+const point = wgs84ToGcj02(loc.latitude, loc.longitude)
+```
+
+下面是 Taro 在 `wgs84` 分支里实际调用的浏览器接口，业务代码不用再写一遍：
 
 ```js
 if (!navigator.geolocation) {
@@ -194,11 +230,11 @@ if (!navigator.geolocation) {
 
 **正式 https 域名固定下来之后，可以在微信里用 `wx.getLocation`，** 效果接近小程序（都是微信给 gcj02）。但还要：这个域名配进公众号「JS 接口安全域名」、后端按当前页 URL 签名、`wx.config` 成功、用户用微信打开这个 H5。用 Chrome / Safari / Edge 打开同一个 https 域名没有 `wx`，仍然走浏览器定位。
 
-Taro H5 的 `Taro.getLocation` 内部就是找 `window.wx.getLocation`。所以：
+Taro H5 先找 `window.wx.getLocation`，找不到才用浏览器。所以：
 
-- 普通 Chrome / Safari：没有这套 `wx`，Taro 定位必失败，应走浏览器定位。
-- 微信内置浏览器：即使有 `wx` 对象，**没做 `wx.config` 鉴权也会失败**。
-- 鉴权成功后，才能像小程序那样调 `wx.getLocation({ type: 'gcj02' })`。
+- 普通 Chrome / Safari：没有 `wx`。`type: 'wgs84'` 能拿到 WGS84；`type: 'gcj02'` 直接失败。
+- 微信内置浏览器：即使有 `wx` 对象，**没做 `wx.config` 鉴权也会失败**。Taro 不会自动再改走浏览器，业务要自己兜底，或者这个页面本来就没注入 SDK，直接走 `wgs84`。
+- 鉴权成功后，可以像小程序那样调 `wx.getLocation`。要 gcj02 就传 `gcj02`，拿到后不要再转；要和浏览器同一条转换，就传 `wgs84` 再转。
 
 官方：[JS-SDK 使用步骤](https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html#1)、[getLocation](https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html#64)
 
@@ -413,60 +449,27 @@ https://map.qq.com/?type=marker
 
 ---
 
-## 6. H5 取点骨架（按目标栈替换「小程序分支」）
+## 6. 取点骨架
+
+坐标系转换仍要自己做。Taro 只负责按 `type` 把定位要回来。
 
 ```js
-function isValidCoordinate(longitude, latitude) {
-  return (
-    typeof longitude === 'number' &&
-    typeof latitude === 'number' &&
-    Number.isFinite(longitude) &&
-    Number.isFinite(latitude) &&
-    !(longitude === 0 && latitude === 0)
-  )
-}
-
-function browserGeolocation() {
-  return new Promise((resolve, reject) => {
-    if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      reject(new Error('getLocation:fail geolocation unsupported'))
-      return
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords
-        if (!isValidCoordinate(longitude, latitude)) {
-          reject(new Error('getLocation:fail invalid coordinates'))
-          return
-        }
-        resolve(wgs84ToGcj02(latitude, longitude))
-      },
-      (err) => {
-        reject(new Error(err?.message ? `getLocation:fail ${err.message}` : 'getLocation:fail'))
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
-    )
-  })
-}
-
 async function getLocationCompat() {
-  // 小程序：保持原 API，已是 gcj02。不要走下面。
-  if (!IS_H5) return originalGetLocation({ type: 'gcj02' })
+  if (!IS_H5) return Taro.getLocation({ type: 'gcj02' })
 
-  if (typeof window !== 'undefined' && typeof window.wx?.getLocation === 'function') {
-    try {
-      const loc = await originalGetLocation({ type: 'gcj02' })
-      if (isValidCoordinate(loc?.longitude, loc?.latitude)) return loc
-    } catch {
-      // 有 wx 但没鉴权，落到浏览器
-    }
+  const loc = await Taro.getLocation({
+    type: 'wgs84',
+    isHighAccuracy: true,
+    highAccuracyExpireTime: 10000,
+  })
+  if (!isValidCoordinate(loc?.longitude, loc?.latitude)) {
+    throw new Error('getLocation:fail invalid coordinates')
   }
-
-  return browserGeolocation()
+  return wgs84ToGcj02(loc.latitude, loc.longitude)
 }
 ```
 
-`IS_H5` / `originalGetLocation` 换成目标项目的编译常量和 API。Taro 里分别是 `process.env.TARO_ENV === 'h5'` 和 `Taro.getLocation`。
+`IS_H5` 在 Taro 里是 `process.env.TARO_ENV === 'h5'`。小程序分支不要改成 `wgs84`，微信开发者工具的定位模拟目前只支持 gcj02，真机虽然两种都支持，但门店库用的是 gcj02。
 
 ### 不要从 vibe-mall 原样带走
 
@@ -481,7 +484,7 @@ async function getLocationCompat() {
 
 ## 7. 容易踩的坑
 
-- 把 Taro/微信 API 当成 H5 也能用，空态一直是「请在小程序设置中开启」。
+- H5 仍传 `type: 'gcj02'`。Taro 在进浏览器之前就失败，页面却把所有失败都显示成「请允许浏览器获取位置」。
 - 用 http 局域网 IP 测 H5 定位，浏览器直接失败。
 - 浏览器 WGS84 和门店 gcj02 混用，距离和导航都偏。
 - 第一次定位成功后把点存内存，以后再进页面直接读缓存，人已经到另一个城市距离也不变。

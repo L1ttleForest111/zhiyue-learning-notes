@@ -11,6 +11,7 @@
 
 - [前端、后端与基础设施关系](./frontend-backend-infrastructure-overview.md)
 - [Nacos 控制台使用说明](./nacos-console-guide.md)
+- [请求从浏览器到微服务](./request-path-nginx-nacos-skywalking.md)
 
 ## 待整理主题
 
